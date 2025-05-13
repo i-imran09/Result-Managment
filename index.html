@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Vishnu College - Result Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary-color: #6366f1;
+      --secondary-color: #4f46e5;
+      --accent-color: #f59e0b;
+      --dark-bg: rgba(17, 24, 39, 0.95);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                  url('image1.jpg') no-repeat center center/cover;
+      color: white;
+      backdrop-filter: blur(10px);
+    }
+
+    .navbar {
+      background: var(--dark-bg);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+    }
+
+    .nav-link {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .nav-link:hover {
+      background: var(--glass-bg);
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent-color);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 4rem 0;
+      animation: fadeIn 1s ease;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(to right, #f59e0b, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 2rem;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    .card {
+      background: var(--glass-bg);
+      padding: 2rem;
+      border-radius: 1rem;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      padding: 2rem;
+      border-radius: 1rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1));
+      transform: rotate(45deg);
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--accent-color);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+      
+      .nav-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-links">
+      <a href="admin.html" class="nav-link">
+        <i class="fas fa-user-shield"></i> Admin
+      </a>
+      <a href="teacher.html" class="nav-link">
+        <i class="fas fa-chalkboard-teacher"></i> Teacher
+      </a>
+      <a href="student.html" class="nav-link">
+        <i class="fas fa-user-graduate"></i> Student
+      </a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <h1>Vishnu College Result Portal</h1>
+    <p>Empowering Academic Excellence Through Technology</p>
+  </div>
+
+  <div class="container">
+    <div class="card-grid">
+      <div class="card">
+        <h2><i class="icon fas fa-university"></i> About Us</h2>
+        <p>Vishnu College combines cutting-edge technology with academic excellence to create leaders of tomorrow. Our state-of-the-art campus spans 50 acres with world-class facilities.</p>
+      </div>
+
+      <div class="card">
+        <h2><i class="icon fas fa-graduation-cap"></i> Programs</h2>
+        <p>Choose from 50+ undergraduate and postgraduate programs across diverse disciplines including Engineering, Business, Arts, and Sciences.</p>
+      </div>
+
+      <div class="card">
+        <h2><i class="icon fas fa-users"></i> Community</h2>
+        <p>Join our vibrant community of 5,000+ students and 200+ faculty members from 20+ countries worldwide.</p>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number">5K+</div>
+        <p>Students Enrolled</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">50+</div>
+        <p>Degree Programs</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">200+</div>
+        <p>Faculty Members</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

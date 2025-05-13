@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Teacher Panel - Vishnu College</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-firestore.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #2A4D8E;
+      --secondary-color: #4A90E2;
+      --success-color: #28a745;
+      --error-color: #dc3545;
+      --background-light: #f8f9fa;
+      --text-dark: #2c3e50;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
+    }
+
+    /* Teacher Login Styles */
+    #login-section {
+      width: 400px;
+      margin: 100px auto;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      transform: translateY(0);
+      transition: all 0.3s ease;
+    }
+
+    #login-section:hover {
+      transform: translateY(-5px);
+    }
+
+    #login-section h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--primary-color);
+      font-weight: 600;
+      font-size: 2em;
+    }
+
+    .input-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .input-group input:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 8px rgba(74, 144, 226, 0.2);
+      outline: none;
+    }
+
+    #login-section button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    #login-section button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    #login-error {
+      color: var(--error-color);
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+      display: none;
+      animation: shake 0.4s;
+    }
+
+    /* Teacher Panel and Tabs Styles */
+    #teacher-panel {
+      display: none;
+      margin: 40px auto;
+      max-width: 1200px;
+      padding: 20px;
+    }
+
+    .tabbar {
+      display: flex;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
+
+    .tabbar button {
+      flex: 1;
+      padding: 18px;
+      color: var(--text-dark);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .tabbar button:hover {
+      color: var(--primary-color);
+    }
+
+    .tabbar button.active {
+      color: var(--primary-color);
+    }
+
+    .tabbar button.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--secondary-color);
+      border-radius: 2px;
+    }
+
+    .tabcontent {
+      display: none;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    /* Form Styling */
+    .form-card {
+      background: var(--background-light);
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-dark);
+      font-weight: 500;
+    }
+
+    /* Table Styling */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 20px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    th {
+      background: var(--primary-color);
+      color: white;
+      font-weight: 500;
+    }
+
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    /* Subject Mark Row */
+    .subjectMarkRow {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+
+    .subjectMarkRow input {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .subjectMarkRow input:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 8px rgba(74, 144, 226, 0.2);
+    }
+
+    .action-button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-button.primary {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .action-button.secondary {
+      background: var(--secondary-color);
+      color: white;
+    }
+
+    .action-button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.success {
+      background: var(--success-color);
+    }
+
+    .toast.error {
+      background: var(--error-color);
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    @media (max-width: 768px) {
+      #login-section {
+        width: 90%;
+        padding: 30px;
+      }
+
+      .tabbar {
+        flex-direction: column;
+      }
+
+      .tabbar button {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 5px 0;
+      }
+
+      .tabcontent {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Teacher Login Section -->
+  <div id="login-section">
+    <h2><i class="fas fa-chalkboard-teacher"></i> Teacher Portal</h2>
+    <form onsubmit="return teacherLogin(event)">
+      <div class="input-group">
+        <input type="text" id="teacherLoginId" placeholder="Teacher ID" required>
+      </div>
+      <div class="input-group">
+        <input type="password" id="teacherLoginPassword" placeholder="Password" required>
+      </div>
+      <button type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
+    </form>
+    <div id="login-error"><i class="fas fa-exclamation-circle"></i> Invalid credentials, please try again.</div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Teacher Panel -->
+  <div id="teacher-panel">
+    <div class="tabbar">
+      <button class="tablink active" onclick="openTab('addStudent', this)"><i class="fas fa-user-plus"></i> Add Student</button>
+      <button class="tablink" onclick="openTab('studentDetails', this)"><i class="fas fa-users"></i> Student Details</button>
+      <button class="tablink" onclick="openTab('addMarks', this)"><i class="fas fa-edit"></i> Add Marks</button>
+    </div>
+
+    <!-- Add Student Tab -->
+    <div id="addStudent" class="tabcontent">
+      <div class="form-card">
+        <h2><i class="fas fa-user-graduate"></i> Add New Student</h2>
+        <form id="studentForm">
+          <div class="form-group">
+            <label>Student ID:</label>
+            <div class="student-id-display">
+              <span id="studentIdDisplay"></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="studentName">Full Name:</label>
+            <input type="text" id="studentName" placeholder="Enter student name" required>
+          </div>
+          <div class="form-group">
+            <label for="studentSemester">Semester:</label>
+            <input type="number" id="studentSemester" placeholder="Enter semester" min="1" required>
+          </div>
+          <div class="form-group">
+            <label for="studentPassword">Password:</label>
+            <input type="password" id="studentPassword" placeholder="Enter password" required>
+          </div>
+          <button type="button" class="action-button primary" onclick="addStudent()">
+            <i class="fas fa-plus-circle"></i> Add Student
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Student Details Tab -->
+    <div id="studentDetails" class="tabcontent">
+      <h2><i class="fas fa-list-alt"></i> Student Records</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Student ID</th>
+              <th>Name</th>
+              <th>Semester</th>
+              <th>Password</th>
+            </tr>
+          </thead>
+          <tbody id="studentDetailsTable">
+            <!-- Student data will be populated here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Add Marks Tab -->
+    <div id="addMarks" class="tabcontent">
+      <div class="form-card">
+        <h2><i class="fas fa-percentage"></i> Add Academic Marks</h2>
+        <form id="marksForm">
+          <div class="form-group">
+            <label for="marksStudentSelect">Select Student:</label>
+            <select id="marksStudentSelect" class="modern-select" required>
+              <!-- Options populated from Firestore -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Subjects & Marks:</label>
+            <div id="subjectMarksContainer">
+              <div class="subjectMarkRow">
+                <input type="text" class="subjectInput" placeholder="Subject" required>
+                <input type="number" class="markInput" placeholder="Marks" min="0" max="100" required>
+              </div>
+            </div>
+          </div>
+          <div class="button-group">
+            <button type="button" class="action-button secondary" onclick="addSubjectRow()">
+              <i class="fas fa-plus"></i> Add Subject
+            </button>
+            <button type="button" class="action-button primary" onclick="submitMarks()">
+              <i class="fas fa-check-circle"></i> Submit Marks
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase Initialization
+    var firebaseConfig = {
+      apiKey: "AIzaSyCMmRFb3XNVwRKiFXKnqI9nVAlczDrtacQ",
+      authDomain: "result-management-5878f.firebaseapp.com",
+      projectId: "result-management-5878f",
+      storageBucket: "result-management-5878f.appspot.com",
+      messagingSenderId: "502833055080",
+      appId: "1:502833055080:web:f751f8807f15055f0d42dd",
+      measurementId: "G-1XR5PJ69ZJ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+    var loggedInTeacher = null;
+
+    // Toast Notification System
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = message;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
+
+    // Tab Navigation
+    function openTab(tabName, element) {
+      // Hide all tab content
+      document.querySelectorAll('.tabcontent').forEach(tab => {
+        tab.style.display = 'none';
+      });
+      
+      // Remove active class from all tabs
+      document.querySelectorAll('.tablink').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Show selected tab and mark as active
+      document.getElementById(tabName).style.display = 'block';
+      element.classList.add('active');
+      
+      // Additional tab-specific initializations
+      if(tabName === 'addStudent') generateStudentId();
+      if(tabName === 'addMarks') populateStudentDropdown();
+      if(tabName === 'studentDetails') fetchStudents();
+    }
+
+    // Student ID Generation
+    function generateStudentId() {
+      db.collection("students").get().then(snapshot => {
+        const newId = "TS" + String(snapshot.size + 1).padStart(4, '0');
+        document.getElementById('studentIdDisplay').textContent = newId;
+      }).catch(error => {
+        showToast('Error generating student ID', 'error');
+        console.error("Error generating student ID:", error);
+      });
+    }
+
+    // Add Student Function
+    function addStudent() {
+      const studentId = document.getElementById('studentIdDisplay').textContent;
+      const studentName = document.getElementById('studentName').value;
+      const studentSemester = document.getElementById('studentSemester').value;
+      const studentPassword = document.getElementById('studentPassword').value;
+
+      if(!studentName || !studentSemester || !studentPassword) {
+        showToast('Please fill all fields', 'error');
+        return;
+      }
+
+      db.collection("students").add({
+        studentId: studentId,
+        name: studentName,
+        semester: studentSemester,
+        password: studentPassword
+      }).then(() => {
+        showToast('Student added successfully!', 'success');
+        document.getElementById('studentForm').reset();
+        generateStudentId();
+        fetchStudents();
+      }).catch(error => {
+        showToast('Error adding student', 'error');
+        console.error("Error adding student:", error);
+      });
+    }
+
+    // Fetch Students Function
+    function fetchStudents() {
+      const tbody = document.getElementById('studentDetailsTable');
+      tbody.innerHTML = '';
+      
+      db.collection("students").get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const student = doc.data();
+          const row = `
+            <tr>
+              <td>${student.studentId}</td>
+              <td>${student.name}</td>
+              <td>${student.semester}</td>
+              <td>${student.password}</td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+      }).catch(error => {
+        showToast('Error loading students', 'error');
+        console.error("Error fetching students:", error);
+      });
+    }
+
+    // Populate Student Dropdown
+    function populateStudentDropdown() {
+      const select = document.getElementById('marksStudentSelect');
+      select.innerHTML = '';
+      
+      db.collection("students").get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const student = doc.data();
+          const option = document.createElement('option');
+          option.value = student.studentId;
+          option.textContent = `${student.name} (${student.studentId})`;
+          select.appendChild(option);
+        });
+      }).catch(error => {
+        showToast('Error loading students', 'error');
+        console.error("Error fetching students:", error);
+      });
+    }
+
+    // Add Subject Row
+    function addSubjectRow() {
+      const container = document.getElementById('subjectMarksContainer');
+      const newRow = document.createElement('div');
+      newRow.className = 'subjectMarkRow';
+      newRow.innerHTML = `
+        <input type="text" class="subjectInput" placeholder="Subject" required>
+        <input type="number" class="markInput" placeholder="Marks" min="0" max="100" required>
+      `;
+      container.appendChild(newRow);
+    }
+
+    // Submit Marks Function
+    function submitMarks() {
+      const studentId = document.getElementById('marksStudentSelect').value;
+      const subjectRows = document.getElementsByClassName('subjectMarkRow');
+      const marks = [];
+
+      for(let row of subjectRows) {
+        const subject = row.querySelector('.subjectInput').value;
+        const mark = row.querySelector('.markInput').value;
+        if(subject && mark) marks.push({ subject, mark });
+      }
+
+      if(!studentId || marks.length === 0) {
+        showToast('Please select student and enter marks', 'error');
+        return;
+      }
+
+      db.collection("studentMarks").add({
+        studentId,
+        marks,
+        teacherId: loggedInTeacher.teacherId,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        showToast('Marks submitted successfully!', 'success');
+        document.getElementById('marksForm').reset();
+        document.getElementById('subjectMarksContainer').innerHTML = `
+          <div class="subjectMarkRow">
+            <input type="text" class="subjectInput" placeholder="Subject" required>
+            <input type="number" class="markInput" placeholder="Marks" required>
+          </div>
+        `;
+      }).catch(error => {
+        showToast('Error submitting marks', 'error');
+        console.error("Error submitting marks:", error);
+      });
+    }
+
+    // Teacher Login Function
+    function teacherLogin(event) {
+      event.preventDefault();
+      const teacherId = document.getElementById('teacherLoginId').value;
+      const password = document.getElementById('teacherLoginPassword').value;
+
+      db.collection("teachers").where("teacherId", "==", teacherId).get()
+        .then(snapshot => {
+          if(snapshot.empty) {
+            document.getElementById('login-error').style.display = 'block';
+            return;
+          }
+          
+          snapshot.forEach(doc => {
+            const teacher = doc.data();
+            if(teacher.password === password) {
+              loggedInTeacher = teacher;
+              document.getElementById('login-section').style.display = 'none';
+              document.getElementById('teacher-panel').style.display = 'block';
+              openTab('addStudent', document.querySelector('.tablink'));
+            } else {
+              document.getElementById('login-error').style.display = 'block';
+            }
+          });
+        })
+        .catch(error => {
+          showToast('Login error', 'error');
+          console.error("Login error:", error);
+        });
+    }
+  </script>
+</body>
+</html>

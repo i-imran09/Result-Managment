@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vishnu College Admin Panel</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                        url('image1.jpg') center/cover fixed;
+            color: var(--dark);
+        }
+
+        /* Login Container */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Admin Panel Container */
+        .admin-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.8rem;
+            background: var(--light);
+            color: var(--dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .tab-btn i {
+            font-size: 1.1em;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 0.8rem;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1.2rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table th {
+            background: var(--primary);
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Forms */
+        .form-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            outline: none;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Loader */
+        .loader {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .admin-container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+
+            .tab-btn {
+                flex: 1 0 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Section -->
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 style="text-align: center; margin-bottom: 1rem; color: var(--primary);">
+                    <i class="fas fa-university"></i> Vishnu College
+                </h1>
+                <p style="text-align: center; margin-bottom: 2rem; color: #666;">
+                    Admin Portal
+                </p>
+            </div>
+            <form id="loginForm" onsubmit="return checkLogin(event)">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="adminId" placeholder="Admin ID" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" id="adminPassword" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <div id="loginError" style="color: var(--danger); margin-top: 1rem; display: none;">
+                    Invalid credentials!
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-container" id="adminPanel">
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="openTab(event, 'addTeacher')">
+                <i class="fas fa-user-plus"></i> Add Teacher
+            </button>
+            <button class="tab-btn" onclick="openTab(event, 'teacherDetails')">
+                <i class="fas fa-chalkboard-teacher"></i> Teachers
+            </button>
+            <button class="tab-btn" onclick="openTab(event, 'studentDetails')">
+                <i class="fas fa-users"></i> Students
+            </button>
+            <button class="tab-btn" onclick="openTab(event, 'teacherSubmissions')">
+                <i class="fas fa-file-upload"></i> Submissions
+            </button>
+        </div>
+
+    <!-- Add Teacher Tab -->
+    <div id="addTeacher" class="tab-content active">
+      <h2>Add New Teacher</h2>
+      <form id="teacherForm">
+        <div class="form-group">
+          <input type="text" class="form-control" id="teacherName" placeholder="Teacher Name" required>
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-control" id="teacherSec" placeholder="Section" required>
+        </div>
+        <div class="form-group">
+          <input type="password" class="form-control" id="teacherPassword" placeholder="Password" required>
+        </div>
+        <button type="button" class="btn" onclick="addTeacher()">Add Teacher</button>
+      </form>
+    </div>
+
+    <!-- Teacher Details Tab -->
+    <div id="teacherDetails" class="tab-content">
+      <h2>Teacher Details</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Teacher ID</th>
+            <th>Name</th>
+            <th>Section</th>
+            <th>Password</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="teacherDetailsTable">
+          <!-- Data will be populated here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Student Details Tab -->
+    <div id="studentDetails" class="tab-content">
+      <h2>Student Details</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Semester</th>
+            <th>Password</th>
+          </tr>
+        </thead>
+        <tbody id="studentDetailsTable">
+          <!-- Data will be populated here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Submissions Tab -->
+    <div id="teacherSubmissions" class="tab-content">
+      <h2>Pending Submissions</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Submission ID</th>
+            <th>Teacher ID</th>
+            <th>Student ID</th>
+            <th>Marks</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="teacherSubmissionsTable">
+          <!-- Data will be populated here -->
+        </tbody>
+      </table>
+      <button class="btn" style="margin-top: 1rem;" onclick="finalizeTeacherSubmissions()">Finalize All</button>
+    </div>
+  </div>
+
+  <script>
+    // Firebase Initialization
+    const firebaseConfig = {
+        apiKey: "AIzaSyCMmRFb3XNVwRKiFXKnqI9nVAlczDrtacQ",
+        authDomain: "result-management-5878f.firebaseapp.com",
+        projectId: "result-management-5878f",
+        storageBucket: "result-management-5878f.appspot.com",
+        messagingSenderId: "502833055080",
+        appId: "1:502833055080:web:f751f8807f15055f0d42dd"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // UI Functions
+    function checkLogin(e) {
+        e.preventDefault();
+        const adminId = document.getElementById('adminId').value;
+        const adminPassword = document.getElementById('adminPassword').value;
+        
+        if(adminId === "iimraniimmu" && adminPassword === "1234") {
+            document.querySelector('.login-container').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            openTab(event, 'addTeacher');
+        } else {
+            showError('loginError');
+        }
+    }
+
+    // Tab Navigation
+    function openTab(evt, tabName) {
+      const tabContents = document.querySelectorAll('.tab-content');
+      const tabButtons = document.querySelectorAll('.tab-btn');
+      
+      tabContents.forEach(content => content.classList.remove('active'));
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      
+      evt.currentTarget.classList.add('active');
+      document.getElementById(tabName).classList.add('active');
+
+      // Refresh data
+      if(tabName === 'teacherDetails') fetchTeacherDetails();
+      else if(tabName === 'studentDetails') fetchStudentDetails();
+      else if(tabName === 'teacherSubmissions') fetchTeacherSubmissions();
+    }
+
+    // Add Teacher Function
+    function addTeacher() {
+      const teacherName = document.getElementById('teacherName').value;
+      const teacherSec = document.getElementById('teacherSec').value;
+      const teacherPassword = document.getElementById('teacherPassword').value;
+
+      if(teacherName && teacherSec && teacherPassword) {
+        db.collection("teachers").get().then(snap => {
+          const newId = "T" + String(snap.size + 1).padStart(4, '0');
+          db.collection("teachers").add({
+            teacherId: newId,
+            name: teacherName,
+            section: teacherSec,
+            password: teacherPassword
+          }).then(() => {
+            alert('Teacher added successfully! ID: ' + newId);
+            document.getElementById('teacherForm').reset();
+            fetchTeacherDetails();
+          });
+        });
+      } else {
+        alert('Please fill all fields!');
+      }
+    }
+
+    // Fetch Teacher Details
+    function fetchTeacherDetails() {
+      const tbody = document.getElementById('teacherDetailsTable');
+      tbody.innerHTML = '';
+      
+      db.collection("teachers").get().then(snap => {
+        snap.forEach(doc => {
+          const teacher = doc.data();
+          tbody.innerHTML += `
+            <tr>
+              <td>${teacher.teacherId}</td>
+              <td>${teacher.name}</td>
+              <td>${teacher.section}</td>
+              <td>${teacher.password}</td>
+              <td><button class="delete-btn" onclick="deleteTeacher('${doc.id}')">Delete</button></td>
+            </tr>
+          `;
+        });
+      });
+    }
+
+    // Delete Teacher
+    function deleteTeacher(docId) {
+      if(confirm('Are you sure?')) {
+        db.collection("teachers").doc(docId).delete()
+          .then(() => fetchTeacherDetails());
+      }
+    }
+
+    // Fetch Student Details
+    function fetchStudentDetails() {
+      const tbody = document.getElementById('studentDetailsTable');
+      tbody.innerHTML = '';
+      
+      db.collection("students").get().then(snap => {
+        snap.forEach(doc => {
+          const student = doc.data();
+          tbody.innerHTML += `
+            <tr>
+              <td>${student.studentId}</td>
+              <td>${student.name}</td>
+              <td>${student.semester}</td>
+              <td>${student.password}</td>
+            </tr>
+          `;
+        });
+      });
+    }
+
+    // Fetch Submissions
+    function fetchTeacherSubmissions() {
+      const tbody = document.getElementById('teacherSubmissionsTable');
+      tbody.innerHTML = '';
+      
+      db.collection("studentMarks").get().then(snap => {
+        snap.forEach(doc => {
+          const sub = doc.data();
+          if(!sub.finalized) {
+            tbody.innerHTML += `
+              <tr>
+                <td>${doc.id}</td>
+                <td>${sub.teacherId}</td>
+                <td>${sub.studentId}</td>
+                <td>${sub.marks.map(m => m.subject + ':' + m.mark).join(', ')}</td>
+                <td>${new Date(sub.timestamp?.seconds * 1000).toLocaleDateString()}</td>
+              </tr>
+            `;
+          }
+        });
+      });
+    }
+
+    // Finalize Submissions
+    function finalizeTeacherSubmissions() {
+      db.collection("studentMarks").get().then(snap => {
+        const batch = db.batch();
+        snap.forEach(doc => {
+          if(!doc.data().finalized) {
+            const ref = db.collection("studentMarks").doc(doc.id);
+            batch.update(ref, { finalized: true });
+          }
+        });
+        return batch.commit();
+      }).then(() => {
+        alert('All submissions finalized!');
+        fetchTeacherSubmissions();
+      });
+    }
+
+    // Initial fetch for first tab
+    fetchTeacherDetails();
+  </script>
+</body>
+</html>

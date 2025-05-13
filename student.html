@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Student Portal - Vishnu College</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-firestore.js"></script>
+  <!-- jsPDF Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #2A4D8E;
+      --secondary-color: #4A90E2;
+      --success-color: #27ae60;
+      --error-color: #e74c3c;
+      --background-light: #f8f9fa;
+      --text-dark: #2c3e50;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
+    }
+
+    /* Login Section */
+    #login-section {
+      width: 400px;
+      margin: 100px auto;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    #login-section:hover {
+      transform: translateY(-5px);
+    }
+
+    #login-section h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--primary-color);
+      font-size: 2em;
+    }
+
+    .input-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .input-group input:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 8px rgba(74, 144, 226, 0.2);
+    }
+
+    #login-section button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    #login-section button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    #login-error {
+      color: var(--error-color);
+      text-align: center;
+      margin-top: 15px;
+      display: none;
+      animation: shake 0.4s;
+    }
+
+    /* Marks Section */
+    #marks-section {
+      display: none;
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    /* Student Profile */
+    #studentInfo {
+      background: var(--background-light);
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    #studentInfo p {
+      margin: 0;
+      padding: 8px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    /* Marks Table */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    th {
+      background: var(--primary-color);
+      color: white;
+      font-weight: 500;
+    }
+
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    /* Marks Summary */
+    #marksSummary {
+      margin-top: 30px;
+      padding: 25px;
+      background: var(--background-light);
+      border-radius: 12px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      text-align: center;
+    }
+
+    .summary-item {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 25px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 16px;
+      margin: 20px 0;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.success {
+      background: var(--success-color);
+    }
+
+    .toast.error {
+      background: var(--error-color);
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    @media (max-width: 768px) {
+      #login-section {
+        width: 90%;
+        padding: 30px;
+      }
+
+      #marks-section {
+        margin: 20px;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Student Login Section -->
+  <div id="login-section">
+    <h2><i class="fas fa-graduation-cap"></i> Student Portal</h2>
+    <form onsubmit="return studentLogin(event)">
+      <div class="input-group">
+        <input type="text" id="studentId" placeholder="Student ID" required>
+      </div>
+      <div class="input-group">
+        <input type="password" id="studentPassword" placeholder="Password" required>
+      </div>
+      <button type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
+    </form>
+    <div id="login-error"><i class="fas fa-exclamation-circle"></i> Invalid credentials</div>
+  </div>
+
+  <!-- Marks Display Section -->
+  <div id="marks-section">
+    <!-- Student Profile -->
+    <div id="studentInfo"></div>
+
+    <!-- Marks Table -->
+    <h2><i class="fas fa-poll"></i> Academic Performance</h2>
+    <table id="marksTable">
+      <thead>
+        <tr>
+          <th><i class="fas fa-book"></i> Subject</th>
+          <th><i class="fas fa-percentage"></i> Marks</th>
+        </tr>
+      </thead>
+      <tbody id="marksTableBody"></tbody>
+    </table>
+
+    <!-- Marks Summary -->
+    <div id="marksSummary"></div>
+
+    <!-- PDF Button -->
+    <button class="btn btn-primary" onclick="downloadPDF()">
+      <i class="fas fa-file-pdf"></i> Download Report
+    </button>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Firebase Initialization
+    const firebaseConfig = {
+      apiKey: "AIzaSyCMmRFb3XNVwRKiFXKnqI9nVAlczDrtacQ",
+      authDomain: "result-management-5878f.firebaseapp.com",
+      projectId: "result-management-5878f",
+      storageBucket: "result-management-5878f.appspot.com",
+      messagingSenderId: "502833055080",
+      appId: "1:502833055080:web:f751f8807f15055f0d42dd",
+      measurementId: "G-1XR5PJ69ZJ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Toast System
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = message;
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 3000);
+    }
+
+    // Student Login
+    function studentLogin(event) {
+      event.preventDefault();
+      const studentId = document.getElementById('studentId').value;
+      const password = document.getElementById('studentPassword').value;
+
+      db.collection("students").where("studentId", "==", studentId).get()
+        .then(snapshot => {
+          if(snapshot.empty) {
+            document.getElementById('login-error').style.display = 'block';
+            return;
+          }
+          
+          snapshot.forEach(doc => {
+            const student = doc.data();
+            if(student.password === password) {
+              // Show marks section
+              document.getElementById('login-section').style.display = 'none';
+              document.getElementById('marks-section').style.display = 'block';
+              
+              // Display profile
+              document.getElementById('studentInfo').innerHTML = `
+                <p><strong><i class="fas fa-id-card"></i> ID:</strong> ${student.studentId}</p>
+                <p><strong><i class="fas fa-user"></i> Name:</strong> ${student.name}</p>
+                <p><strong><i class="fas fa-layer-group"></i> Semester:</strong> ${student.semester}</p>
+              `;
+              
+              // Load marks
+              fetchMarks(student.studentId);
+            } else {
+              document.getElementById('login-error').style.display = 'block';
+            }
+          });
+        })
+        .catch(error => {
+          showToast('Login failed', 'error');
+          console.error("Login error:", error);
+        });
+    }
+
+    // Fetch Marks
+    function fetchMarks(studentId) {
+      const tbody = document.getElementById('marksTableBody');
+      tbody.innerHTML = '';
+      let totalObtained = 0, subjectCount = 0;
+
+      db.collection("studentMarks")
+        .where("studentId", "==", studentId)
+        .where("finalized", "==", true)
+        .get()
+        .then(snapshot => {
+          if(snapshot.empty) {
+            tbody.innerHTML = `<tr><td colspan="2">No finalized marks available</td></tr>`;
+            return;
+          }
+
+          snapshot.forEach(doc => {
+            doc.data().marks.forEach(mark => {
+              totalObtained += parseFloat(mark.mark);
+              subjectCount++;
+              tbody.innerHTML += `
+                <tr>
+                  <td>${mark.subject}</td>
+                  <td>${mark.mark}/100</td>
+                </tr>
+              `;
+            });
+          });
+
+          // Update summary
+          const totalPossible = subjectCount * 100;
+          const percentage = ((totalObtained / totalPossible) * 100).toFixed(2);
+          document.getElementById('marksSummary').innerHTML = `
+            <div class="summary-item">
+              <h3>Total Marks</h3>
+              <p>${totalObtained}/${totalPossible}</p>
+            </div>
+            <div class="summary-item">
+              <h3>Percentage</h3>
+              <p>${percentage}%</p>
+            </div>
+          `;
+        })
+        .catch(error => {
+          showToast('Error loading marks', 'error');
+          console.error("Marks error:", error);
+        });
+    }
+
+    // PDF Generation
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let y = 20;
+
+      // Header
+      doc.setFontSize(18);
+      doc.text("Academic Report - Vishnu College", 15, y);
+      y += 15;
+
+      // Student Info
+      doc.setFontSize(12);
+      const studentInfo = document.getElementById('studentInfo').textContent;
+      studentInfo.split('\n').forEach(line => {
+        doc.text(line.trim(), 15, y);
+        y += 10;
+      });
+
+      // Marks Table
+      y += 15;
+      doc.setFontSize(14);
+      doc.text("Subject-wise Marks:", 15, y);
+      y += 10;
+
+      const table = document.getElementById('marksTable');
+      Array.from(table.rows).forEach((row, index) => {
+        if(index === 0) return; // Skip header
+        const cols = row.cells;
+        doc.text(`${cols[0].textContent}: ${cols[1].textContent}`, 20, y);
+        y += 10;
+        if(y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+
+      // Summary
+      y += 15;
+      doc.setFontSize(14);
+      doc.text("Performance Summary:", 15, y);
+      y += 10;
+      doc.setFontSize(12);
+      document.getElementById('marksSummary').textContent.split('\n')
+        .forEach(line => {
+          doc.text(line.trim(), 20, y);
+          y += 10;
+        });
+
+      doc.save('academic-report.pdf');
+      showToast('Report downloaded successfully!');
+    }
+  </script>
+</body>
+</html>
